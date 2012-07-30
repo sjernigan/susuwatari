@@ -8,7 +8,7 @@ module Susuwatari
 
     TEST_URL = 'http://www.webpagetest.org/runtest.php'
 
-    def initialize( params = {} )
+    def initialize(params = {})
       params.fetch(:k)
       params.fetch(:url)
       params[:f] = :json
@@ -35,7 +35,8 @@ module Susuwatari
 
     def make_request
       response = RestClient.get TEST_URL, :params => params, :accept => :json
-      raise_error "The requests was not completed, try again." unless  response.code == 200
+      raise_error 'The requests was not completed, try again.' unless response.code == 200
+
       body     = Hashie::Mash.new(JSON.parse(response.body))
       raise_error(body.statusText) unless body.statusCode == 200
       body

@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   # s.add_development_dependency "rspec"
-  s.add_runtime_dependency "activesupport", ">= 3.0.0"
+  s.add_runtime_dependency "crack"
   s.add_runtime_dependency "json", ">= 1.5.0"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
   s.add_runtime_dependency "rest-client", "~> 1.6.7"

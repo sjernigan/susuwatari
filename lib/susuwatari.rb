@@ -5,7 +5,7 @@ require 'forwardable'
 
 require 'susuwatari/version'
 require 'susuwatari/error'
-require "susuwatari/result"
+require 'susuwatari/result'
 require 'susuwatari/client'
 
 module Susuwatari

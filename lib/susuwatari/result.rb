@@ -1,7 +1,4 @@
-require 'active_support/core_ext/hash/conversions'
-require 'active_support/inflections'
-
-require 'csv'
+require 'crack'
 
 module Susuwatari
   class Result
@@ -14,9 +11,14 @@ module Susuwatari
 
     def_delegators :@test_result, :average, :median
 
-    def initialize( request_response )
-      @request_raw = request_response
-      @test_id  = request_raw.data.testId
+    def initialize(request_response)
+      if request_response.is_a?(String)
+        @test_id = request_response
+        fetch_status
+      else
+        @request_raw = request_response
+        @test_id     = @request_raw.data.testId
+      end
     end
 
     def status
@@ -27,11 +29,13 @@ module Susuwatari
     private
 
     def fetch_status
-      status = Hashie::Mash.new(JSON.parse( RestClient.get STATUS_URL, :params => { :f => :json, :test => test_id }))
+      status = Hashie::Mash.new(JSON.parse(RestClient.get STATUS_URL,
+                                           :params => {:f => :json,
+                                                       :test => @test_id }))
       case status.data.statusCode.to_s
       when /1../
         @current_status = :running
-      when "200"
+      when '200'
         @current_status = :completed
         fetch_result
       when /4../
@@ -40,14 +44,18 @@ module Susuwatari
     end
 
     def fetch_result
-      response = RestClient.get "#{RESULT_URL_PREFIX}/#{test_id}/"
-      response = deep_symbolize(Hash.from_xml(response.body)){ |key| key.underscore }
-      @test_result  = Hashie::Mash.new(response).response.data
+      response = RestClient.get "#{RESULT_URL_PREFIX}/#{@test_id}/"
+      # http://stackoverflow.com/questions/1509915/converting-camel-case-to-underscore-case-in-ruby
+      response = deep_symbolize(Crack::XML.parse(response.body)) do |key|
+        key.gsub(/(.)([A-Z])/,'\1_\2').downcase
+      end
+
+      @test_result = Hashie::Mash.new(response).response.data
     end
 
     # Thanks to https://gist.github.com/998709 with a slightly modification.
     def deep_symbolize(hsh, &block)
-      hsh.inject({}) { |result, (key, value)|
+      hsh.inject({}) do |result, (key, value)|
         # Recursively deep-symbolize subhashes
         value = deep_symbolize(value, &block) if value.is_a? Hash
 
@@ -59,7 +67,7 @@ module Susuwatari
         # write it back into the result and return the updated hash
         result[sym_key] = value
         result
-      }
+      end
     end
   end
 end
