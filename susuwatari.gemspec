@@ -12,9 +12,26 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "susuwatari"
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.files         = %w[
+    .gitignore
+    .rvmrc
+    Gemfile
+    README.md
+    Rakefile
+    lib/susuwatari.rb
+    lib/susuwatari/client.rb
+    lib/susuwatari/error.rb
+    lib/susuwatari/result.rb
+    lib/susuwatari/version.rb
+    spec/spec_helper.rb
+    spec/susuwatari_spec.rb
+    susuwatari.gemspec
+    ]
+  s.test_files    = %w[
+    spec/spec_helper.rb
+    spec/susuwatari_spec.rb
+    ]
+  s.executables   = []
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
