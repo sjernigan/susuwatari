@@ -4,8 +4,8 @@ require "susuwatari/version"
 Gem::Specification.new do |s|
   s.name        = "susuwatari"
   s.version     = Susuwatari::VERSION
-  s.authors     = ["Benjamin Krause", "Adolfo Builes"]
-  s.email       = ["bk@benjaminkrause.com", "builes.adolfo@gmail.com"]
+  s.authors     = ["Benjamin Krause", "Adolfo Builes", "Brian Goad"]
+  s.email       = ["bk@benjaminkrause.com", "builes.adolfo@gmail.com", "bdgoad@gmail.com"]
   s.homepage    = "https://github.com/moviepilot/susuwatari"
   s.summary     = %q{Simple Wrapper around the API of webpagetest.org}
   s.description = %q{Allows to schedule tests on webpagetest.org}
