@@ -10,7 +10,7 @@ module Susuwatari
       params.fetch(:url)
       params[:f] = :json
       params[:runs] ||= 1
-      self.instance ||= 'http://www.webpagetest.org'
+      self.instance = params[:instance] || 'http://www.webpagetest.org'
       params.delete(:instance)      
       params.delete(:r)
       self.params = params
@@ -52,7 +52,7 @@ module Susuwatari
 
       body     = Hashie::Mash.new(JSON.parse(response.body))
       raise_error(body.statusText) unless body.statusCode == 200
-      body.data.testId
+      body.data.userUrl
     end
 
     def raise_error(msg)

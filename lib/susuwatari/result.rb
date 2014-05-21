@@ -13,19 +13,20 @@ module Susuwatari
 
     def initialize(request_response)
       if request_response.is_a?(String)
-        if request_response.match(/\/result\/([\w_]*)\//)
-          @test_id = request_response.match(/\/result\/([\w_]*)\//)[1]
-          @instance = request_response.match(/(.*)\/result\/[\w_]*\//)[1]
+        if request_response.match(/\/result\/([\w_]*)\/?/)
+          @test_id = request_response.match(/\/result\/([\w_]*)\/?/)[1]
+          @instance = request_response.match(/(.*)\/result\/[\w_]*\/?/)[1]
           unless @instance.start_with?("http")
             @instance = "http://#{@instance}"
           end
         else
-          @test_id = request_response
+          raise "Please pass the full URL for the test results"
         end
         fetch_status
       else
         @request_raw = request_response
         @test_id     = @request_raw.data.testId
+        @instance     = @request_raw.data.summary.match(/(.*)\/result\/[\w_]*\/?/)[1]
       end
     end
 
@@ -57,7 +58,11 @@ module Susuwatari
       response = RestClient.get url
       # http://stackoverflow.com/questions/1509915/converting-camel-case-to-underscore-case-in-ruby
       response = deep_symbolize(Crack::XML.parse(response.body)) do |key|
-        key.gsub(/(.)([A-Z])/,'\1_\2').downcase
+        if key == key.upcase
+          key.downcase
+        else
+          key.gsub(/(.)([A-Z])/,'\1_\2').downcase
+        end
       end
 
       @test_result = Hashie::Mash.new(response).response.data
@@ -68,6 +73,8 @@ module Susuwatari
       hsh.inject({}) do |result, (key, value)|
         # Recursively deep-symbolize subhashes
         value = deep_symbolize(value, &block) if value.is_a? Hash
+        # Recursively deep-symbolize subarrays
+        value = deep_symbolize_array(value, &block) if value.is_a? Array
 
         # Pre-process the key with a block if it was given
         key = yield key if block_given?
@@ -77,6 +84,20 @@ module Susuwatari
         # write it back into the result and return the updated hash
         result[sym_key] = value
         result
+      end
+    end
+
+    def deep_symbolize_array(arry, &block)
+      arry.collect do |item|
+        if item.is_a? Hash
+          # Recursively deep-symbolize subhashes
+          deep_symbolize(item, &block)
+        elsif item.is_a? Array
+          # Recursively deep-symbolize subarrays
+          deep_symbolize_array(item, &block)
+        else
+          item
+        end
       end
     end
   end
