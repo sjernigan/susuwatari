@@ -4,16 +4,24 @@ module Susuwatari
   class Result
     extend Forwardable
 
-    STATUS_URL        = 'http://www.webpagetest.org/testStatus.php'
-    RESULT_URL_PREFIX = 'http://www.webpagetest.org/xmlResult/'
+    STATUS_URL        = '/testStatus.php'
+    RESULT_URL_PREFIX = '/xmlResult/'
 
-    attr_reader :test_id, :current_status, :test_result, :request_raw
+    attr_reader :test_id, :current_status, :test_result, :request_raw, :instance
 
     def_delegators :@test_result, :average, :median
 
     def initialize(request_response)
       if request_response.is_a?(String)
-        @test_id = request_response
+        if request_response.match(/\/result\/([\w_]*)\//)
+          @test_id = request_response.match(/\/result\/([\w_]*)\//)[1]
+          @instance = request_response.match(/(.*)\/result\/[\w_]*\//)[1]
+          unless @instance.start_with?("http")
+            @instance = "http://#{@instance}"
+          end
+        else
+          @test_id = request_response
+        end
         fetch_status
       else
         @request_raw = request_response
@@ -29,7 +37,8 @@ module Susuwatari
     private
 
     def fetch_status
-      status = Hashie::Mash.new(JSON.parse(RestClient.get STATUS_URL,
+      url = "#{@instance}/#{STATUS_URL}"
+      status = Hashie::Mash.new(JSON.parse(RestClient.get url,
                                            :params => {:f => :json,
                                                        :test => @test_id }))
       case status.data.statusCode.to_s
@@ -44,7 +53,8 @@ module Susuwatari
     end
 
     def fetch_result
-      response = RestClient.get "#{RESULT_URL_PREFIX}/#{@test_id}/"
+      url = "#{@instance}/#{RESULT_URL_PREFIX}/#{@test_id}/"
+      response = RestClient.get url
       # http://stackoverflow.com/questions/1509915/converting-camel-case-to-underscore-case-in-ruby
       response = deep_symbolize(Crack::XML.parse(response.body)) do |key|
         key.gsub(/(.)([A-Z])/,'\1_\2').downcase

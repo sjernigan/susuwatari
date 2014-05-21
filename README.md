@@ -38,6 +38,12 @@ This gem allows you to use the API of Patrick Meenan excellent [webpagetest.org]
     mei.result.run.first_view.results.requests
     => 12
 
+If you request for more than one test execution, the run key will be an array
+
+    mei.result.run[0].first_view.results.requests
+    => 12
+
+
 You can check what a result looks like [here](https://sites.google.com/a/webpagetest.org/docs/advanced-features/webpagetest-restful-apis#TOC-Getting-test-results).
 
 So why Susuwatari?
@@ -96,6 +102,13 @@ method.
     mei = Susuwatari.new( url: 'http://www.webpagetest.org/result/130514_NC_RRZ/', k: '5566sdfdsf' )
     mei.review_results.run.first_view.results.requests
     => 1
+
+Private WebPageTest instance
+----
+You can test against a private instance by passing an additional instance param to the constructor
+
+    mei = Susuwatari.new( url: 'google.com', k: 'your-key', instance: 'http://www.my_webpagetest.org:83')
+
 
 Locations
 ----
